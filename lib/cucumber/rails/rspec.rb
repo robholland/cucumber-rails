@@ -1,13 +1,12 @@
+# TODO: Not even sure is this is necessary anymore, since we're doing this in Cucumber's rb_world.rb...
 require 'cucumber/rails/world'
 
 begin
-  require 'rspec/expectations'
-  require 'rspec/rails'
+  require 'rspec/rails/matchers'
 
   [Cucumber::Rails::World, ActionController::Integration::Session].each do |klass|
     klass.class_eval do
-      include Rspec::Matchers
-      include Rspec::Rails::Matchers
+      include RSpec::Matchers
     end
   end
 rescue LoadError => try_rspec_1
@@ -17,7 +16,7 @@ rescue LoadError => try_rspec_1
   [Cucumber::Rails::World, ActionController::Integration::Session].each do |klass|
     klass.class_eval do
       include Spec::Matchers
-      include Spec::Rails::Matchers
+      include Spec::Rails::Matchers if defined?(Spec::Rails::Matchers)
     end
   end
 end

@@ -37,7 +37,7 @@ module Cucumber #:nodoc:
     class World < ActionController::IntegrationTest
       include ActiveSupport::Testing::SetupAndTeardown if ActiveSupport::Testing.const_defined?("SetupAndTeardown")
       def initialize #:nodoc:
-        @_result = Test::Unit::TestResult.new
+        @_result = Test::Unit::TestResult.new if defined?(Test::Unit::TestResult)
       end
     end
   end

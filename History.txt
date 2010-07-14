@@ -1,15 +1,41 @@
-== In Git
+== 0.3.2 2010-06-06
+
+== Changed features
+* web_steps.rb uses "([^"]*)" instead of "([^\"]*)" (Aslak Hellesøy)
+* Renamed cucumber:skeleton to cucumber:install (Rails 3 generator). (Aslak Hellesøy)
+* Upgraded to be compatible with rspec 2.0.0.beta.10 (#35 Gabor Ratky, Pete Yandell)
+
+== 0.3.1 2010-05-03
+
+This release has a lot of bugfixes! The test suite (based on Aruba) verifies that Cucumber-Rails
+now works with various combinations of: 
+
+* Cucumber 0.6.x/0.7.2
+* Rails2/Rails3
+* RSpec1/RSpec2/Test-Unit/Mini-Uint
+* Webrat/CapyBara
+* MRI 1.8.6/1.8.7/1.9.1
+
+This one requires a special mention: The handy (but error prone) rerun functionality has moved to a 
+separate rerun profile, so all rerun.txt related issues should now be gone.
 
 == New features
+* New Capybara Step Definitions for Dates. (Rob Holland)
+* Steps now recognise "Given I am on the users page" etc. (Solomon White)
+* Relegate rerun to its own profile and rake task (Mike Sassak)
+* Added new Then /^(?:|I )should see JSON:$/ step definition to Capybara - useful for REST. (Aslak Hellesøy)
 * The #tableish method now understands tables with colspan and rowspan
-* Support RSpec 2 (Johan Kiviniemi)
+* Support RSpec 2 (Johan Kiviniemi, Aslak Hellesøy, Rolf Bjaanes)
 * Added @no-js-emulation, which turns off javascript emulation for delete links when not using browser testing. (Rob Holland, Aslak Hellesøy)
 * Korean translation (Shim Taewon)
 
 === Bugfixes
+* No longer need to install the test-unit gem on 1.9.1 (Aslak Hellesøy)
+* capybara rack-test field should contain step support for textarea (#28 Nicholas Rutherford)
+* "Rspec is not missing constant Matchers!" error. (#27 David Chelimsky, Aslak Hellesøy)
 * @culerity tag breaks Rails 3 RESTful helpers (#17 Aslak Hellesøy)
 
-== 0.3.0
+== 0.3.0 2010-02-25
 
 This is a major release since we're now supporting both Rails 3 and RSpec 2. Older versions
 (Rails 2 and RSpec 1) are still supported.
