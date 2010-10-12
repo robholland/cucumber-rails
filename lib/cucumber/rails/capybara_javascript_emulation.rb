@@ -5,6 +5,9 @@ module Cucumber
         base.class_eval do
           alias_method :click_without_javascript_emulation, :click
           alias_method :click, :click_with_javascript_emulation
+          if Capybara::VERSION.to_f < 0.4
+            alias_method :native, :node
+          end
         end
       end
   
@@ -19,12 +22,12 @@ module Cucumber
       private
 
       def js_form(action, emulated_method, method = 'POST')
-        js_form = node.document.create_element('form')
+        js_form = native.document.create_element('form')
         js_form['action'] = action
         js_form['method'] = method
 
         if emulated_method and emulated_method.downcase != method.downcase
-          input = node.document.create_element('input')
+          input = native.document.create_element('input')
           input['type'] = 'hidden'
           input['name'] = '_method'
           input['value'] = emulated_method
