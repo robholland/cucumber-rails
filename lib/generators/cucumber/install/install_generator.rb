@@ -1,11 +1,9 @@
+require 'rbconfig'
 require File.join(File.dirname(__FILE__), 'install_base')
 
 module Cucumber
   class InstallGenerator < Rails::Generators::Base
-
     include Cucumber::Generators::InstallBase
-
-    DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
 
     argument     :language,      :type => :string,  :banner => "LANG", :optional => true
 
@@ -25,13 +23,7 @@ module Cucumber
     end
 
     def generate
-      check_upgrade_limitations
-      create_templates
-      create_scripts
-      create_step_definitions
-      create_feature_support
-      create_tasks
-      create_database unless options[:skip_database]
+      install_cucumber_rails(self)
     end
   
     def self.gem_root
@@ -47,16 +39,16 @@ module Cucumber
     end
 
     private
-  
+
     def framework_from_options
-      return :rspec if options[:rspec]
-      return :testunit if options[:testunit]
+      return 'rspec-rails' if options[:rspec]
+      return 'testunit' if options[:testunit]
       return nil
     end
 
     def driver_from_options
-      return :webrat if options[:webrat]
-      return :capybara if options[:capybara]
+      return 'webrat' if options[:webrat]
+      return 'capybara' if options[:capybara]
       return nil
     end
   

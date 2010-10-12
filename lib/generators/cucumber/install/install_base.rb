@@ -1,8 +1,27 @@
+require 'rbconfig'
+
 module Cucumber
   module Generators
     module InstallBase
 
       DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+      GEMS = {
+        'capybara' => '0.3.9',
+        'webrat' => '0.7.1',
+        'rspec-rails' => '2.0.0.beta.22'
+      }
+
+      def install_cucumber_rails(m)
+        check_upgrade_limitations
+        create_templates(m)
+        create_scripts(m)
+        create_step_definitions(m)
+        create_feature_support(m)
+        create_tasks(m)
+        create_database(m) unless options[:skip_database]
+        add_gem(driver_from_options.to_s, GEMS[driver_from_options], :group => :test)
+        add_gem(framework_from_options.to_s, GEMS[framework_from_options], :group => :test)
+      end
 
       # Checks and prints the limitations
       def check_upgrade_limitations
@@ -20,37 +39,15 @@ module Cucumber
       end
 
       # Creates templates
-      def create_templates(m = self, rails2 = false)
+      def create_templates(m)
         m.template 'config/cucumber.yml.erb', 'config/cucumber.yml'
-        if rails2
+        if rails2?
           m.template 'environments/cucumber.rb.erb', 'config/environments/cucumber.rb'
         end
       end
 
-      def configure_gemfile(m = self, rails2 = false)
-        require 'thor-ext'
-        unless rails2
-          puts "Update Rails 3 Gemfile for cucumber"
-          gsub_file 'Gemfile', /('|")gem/, "\1\ngem"
-          add_gem('database_cleaner', '>=0.5.2') unless has_plugin? 'database_cleaner'
-          if driver == :capybara
-            add_gem('capybara', '>=0.3.7')
-          else
-            add_gem('webrat', '>=0.7.0') unless has_plugin? 'webrat'
-          end
-          if framework == :rspec
-            add_gem('rspec', '>=1.3.0') unless has_plugin? 'rspec'
-            add_gem('rspec-rails', '>=1.3.2') unless has_plugin? 'rspec-rails'
-          end
-          if spork?
-            add_gem('spork''>=0.7.5') unless has_plugin? 'spork'
-          end
-          add_gems(%w{cucumber cucumber-rails})
-        end
-      end
-
-      def create_scripts(m = self, rails2 = false)
-        if rails2
+      def create_scripts(m)
+        if rails2?
           m.file 'script/cucumber', 'script/cucumber', {
             :chmod => 0755, :shebang => options[:shebang] == DEFAULT_SHEBANG ? nil : options[:shebang]
           }
@@ -60,8 +57,8 @@ module Cucumber
         end
       end
 
-      def create_step_definitions(m = self, rails2 = false)
-        if rails2
+      def create_step_definitions(m)
+        if rails2?
           m.directory 'features/step_definitions'
         else
           m.empty_directory 'features/step_definitions'
@@ -73,8 +70,8 @@ module Cucumber
         end
       end
 
-      def create_feature_support(m = self, rails2 = false)
-        if rails2
+      def create_feature_support(m)
+        if rails2?
           m.directory 'features/support'
           m.file      'support/paths.rb', 'features/support/paths.rb'
 
@@ -95,8 +92,8 @@ module Cucumber
         end
       end
 
-      def create_tasks(m = self, rails2 = false)
-        if rails2
+      def create_tasks(m)
+        if rails2?
           m.directory 'lib/tasks'
         else
           m.empty_directory 'lib/tasks'
@@ -105,7 +102,7 @@ module Cucumber
         m.template 'tasks/cucumber.rake.erb', 'lib/tasks/cucumber.rake'
       end
 
-      def create_database(m = self, rails2 = false)
+      def create_database(m)
         unless File.read('config/database.yml').include? 'cucumber:'
           m.gsub_file 'config/database.yml', /^test:.*\n/, "test: &test\n"
           m.gsub_file 'config/database.yml', /\z/, "\ncucumber:\n  <<: *test"
@@ -115,28 +112,14 @@ module Cucumber
         end
       end
 
-      def print_instructions
-        require 'cucumber/formatter/ansicolor'
-        extend Cucumber::Formatter::ANSIColor
+      protected
 
-        if @default_driver
-          puts <<-WARNING
-
-    #{yellow_cukes(15)}
-
-                  #{yellow_cukes(1)}   D R I V E R   A L E R T    #{yellow_cukes(1)}
-
-    You didn't explicitly generate with --capybara or --webrat, so I looked at
-    your gems and saw that you had #{green(@default_driver.to_s)} installed, so I went with that.
-    If you want something else, be specific about it. Otherwise, relax.
-
-    #{yellow_cukes(15)}
-
-    WARNING
+      def add_gem(*args)
+        if rails2?
+        else
+          self.gem(*args)
         end
       end
-
-      protected
 
       def detect_current_driver
         detect_in_env([['capybara', :capybara], ['webrat', :webrat]])
@@ -160,6 +143,10 @@ module Cucumber
 
       def spork?
         options[:spork]
+      end
+
+      def rails2?
+        defined?(Rails::Generator::Base) # In Rails3 it's Rails::Generators::Base (plural s)
       end
 
       def embed_file(source, indent='')
